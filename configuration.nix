@@ -2,7 +2,7 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
       ./hardware-configuration.nix
     ];
 
@@ -11,7 +11,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Kernel
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Kernel Parameters
   boot.kernelParams = [
@@ -53,7 +53,7 @@
   };
   
   # Hostname
-  networking.hostName = "nixos";
+  networking.hostName = "kowareru";
   
   # Bluetooth
   hardware.bluetooth.enable = true;
@@ -103,6 +103,9 @@
       };
       desktopManager.gnome = {
        enable = true;
+      };
+      libinput = {
+       touchpad.disableWhileTyping = true;
       };
     };
   };
