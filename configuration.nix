@@ -2,7 +2,7 @@
 
 {
   imports =
-    [
+    [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -11,7 +11,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Kernel Parameters
   boot.kernelParams = [
@@ -22,7 +22,7 @@
     "i915.enable_gvt=0"
     "fbdev=1"
   ];
-
+  
   # Microcode
   hardware.cpu.intel.updateMicrocode = true;
   services.thermald.enable = true;
@@ -41,7 +41,7 @@
 
   # ClamAV
   services.clamav = {
-    daemon.enable = true;
+    daemon.enable = false;
     updater.enable = false;
   };
 
@@ -51,10 +51,10 @@
     algorithm = "lz4";
     memoryPercent = 50;
   };
-
+  
   # Hostname
-  networking.hostName = "kowareru";
-
+  networking.hostName = "nixos";
+  
   # Bluetooth
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
@@ -89,7 +89,7 @@
     LC_TIME = "ru_RU.UTF-8";
   };
 
-  # Enable the WAYLAND and NVIDIA, plasma6 too blyat'
+  # Enable the GNOME Desktop Environment.
   services = {
     xserver = {
       enable = false;
@@ -98,30 +98,38 @@
         variant = "";
       };
       excludePackages = [ pkgs.xterm ];
-    };
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-      enableHidpi = true;
-      autoNumlock = true;
-    };
-    desktopManager.plasma6 = {
-      enable = true;
-    };
-    libinput = {
-      touchpad.disableWhileTyping = true;
+      displayManager.gdm = {
+       enable = true;
+      };
+      desktopManager.gnome = {
+       enable = true;
+      };
     };
   };
-  environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    plasma-browser-integration
-    oxygen
+  environment.gnome.excludePackages = with pkgs; [
+    orca
+    evince
+    geary
+    gnome-tour
+    gnome-user-docs
+    baobab
+    epiphany
+    gnome-characters
+    gnome-contacts
+    gnome-logs
+    gnome-maps
+    gnome-connections
+    simple-scan
+    totem
+    yelp
+    gnome-software
   ];
-
+  
   # xdg-portals
   xdg.portal = {
    enable = true;
   };
-
+  
   # VAAPI
   hardware.graphics = {
     enable = true;
@@ -132,29 +140,24 @@
     ];
   };
   environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
-
-  # KDE Connect
-  programs.kdeconnect.enable = true;
-
+  
   # Exclude manual HTML
   documentation.nixos.enable = false;
-
+  
   # Environment for performance
   environment.variables = {
-    KWIN_DRM_DISABLE_TRIPLE_BUFFERING = "1";
     NOUVEAU_USE_ZINK = "1";
     GALLIUM_DRIVER = "zink";
-    #KWIN_DRM_DEVICES = "/dev/dri/card0:/dev/dri/card1";
   };
-
-  # Unfree
+  
+  # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = false;
 
   # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
+  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -174,7 +177,7 @@
       songrec
       neofetch
       telegram-desktop
-      libreoffice-qt6-fresh
+      libreoffice-fresh
       emacs
       obs-studio
       vlc
@@ -184,7 +187,7 @@
       easyeffects
     ];
   };
-
+  
   # Aliases
   programs = {
     bash = {
@@ -196,27 +199,21 @@
       };
     };
   };
-
+  
   # Gaming
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = false;
     dedicatedServer.openFirewall = false;
     localNetworkGameTransfers.openFirewall = false;
-    package = pkgs.steam.override {
-      extraPkgs =
-      pkgs: with pkgs; [
-        kdePackages.breeze
-      ];
-    };
   };
   programs.steam.gamescopeSession.enable = true;
   programs.gamemode.enable = true;
-
-  # Install firefox and thunderbird
+  
+  # Firefox and thunderbird
   programs.firefox.enable = true;
   programs.thunderbird.enable = true;
-
+  
   # Fonts
   fonts.packages = with pkgs; [
     noto-fonts-cjk-sans
