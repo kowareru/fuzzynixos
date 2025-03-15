@@ -104,9 +104,9 @@
       desktopManager.gnome = {
        enable = true;
       };
-      libinput = {
+    };
+    libinput = {
        touchpad.disableWhileTyping = true;
-      };
     };
   };
   environment.gnome.excludePackages = with pkgs; [
@@ -206,11 +206,11 @@
   # Gaming
   programs.steam = {
     enable = true;
-    remotePlay.openFirewall = false;
-    dedicatedServer.openFirewall = false;
-    localNetworkGameTransfers.openFirewall = false;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    localNetworkGameTransfers.openFirewall = true;
+    gamescopeSession.enable = true;
   };
-  programs.steam.gamescopeSession.enable = true;
   programs.gamemode.enable = true;
   
   # Firefox and thunderbird
