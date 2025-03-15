@@ -11,7 +11,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Kernel Parameters
   boot.kernelParams = [
@@ -41,8 +41,8 @@
 
   # ClamAV
   services.clamav = {
-    daemon.enable = false;
-    updater.enable = false;
+    daemon.enable = true;
+    updater.enable = true;
   };
 
   # zram
@@ -93,10 +93,6 @@
   services = {
     xserver = {
       enable = false;
-      xkb = {
-        layout = "us,ru";
-        variant = "";
-      };
       excludePackages = [ pkgs.xterm ];
       displayManager.gdm = {
        enable = true;
@@ -105,9 +101,6 @@
        enable = true;
       };
     };
-    libinput = {
-       touchpad.disableWhileTyping = true;
-    };
   };
   environment.gnome.excludePackages = with pkgs; [
     orca
@@ -115,14 +108,22 @@
     geary
     gnome-tour
     gnome-user-docs
+    gnome-disk-utility
+    gnome-backgrounds
     baobab
     epiphany
     gnome-characters
+    gnome-font-viewer
+    gnome-calendar
     gnome-contacts
     gnome-logs
     gnome-maps
+    gnome-music
+    gnome-weather
+    gnome-clocks
     gnome-connections
     simple-scan
+    snapshot
     totem
     yelp
     gnome-software
@@ -160,12 +161,12 @@
   services.printing.enable = false;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
-    alsa.support32Bit = true;
+    alsa.support32Bit = false;
     pulse.enable = true;
   };
 
@@ -233,5 +234,6 @@
   systemd.services.ModemManager.enable = false;
 
   # Don't touch
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
 }
+
