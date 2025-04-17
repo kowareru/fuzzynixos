@@ -10,22 +10,22 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Kernel (latest с багом)
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Kernel Parameters
   boot.kernelParams = [
-    "nouveau.config=NvGspRm=1"
-    "pcie_aspm=force"
-    "intel_pstate=active"
-    "processor.max_cstate=5"
-    "intel_idle.max_cstate=4"
     "i915.enable_psr=0"
     "i915.enable_fbc=1"
     "i915.enable_dc=1"
     "i915.enable_gvt=0"
-    "fbdev=1"
+    "nvidia.NVreg_EnableGpuFirmware=0"
   ];
+
+  boot.extraModprobeConfig = ''
+    options nvidia NVreg_UsePageAttributeTable=1
+  '';
+
 
   # Microcode
   hardware.cpu.intel.updateMicrocode = true;
@@ -93,7 +93,7 @@
     LC_TIME = "ru_RU.UTF-8";
   };
 
-  # Enable the WAYLAND and NVIDIA, plasma6 too blyat'
+  # Enable the WAYLAND, NVIDIA, SDDM and Plasma6
   services = {
     xserver = {
       enable = false;
@@ -121,12 +121,7 @@
     oxygen
   ];
 
-  # xdg-portals
-  xdg.portal = {
-   enable = true;
-  };
-
-  # VAAPI
+  # Enable OpenGL
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
@@ -137,7 +132,33 @@
       libvdpau-va-gl
     ];
   };
+
+  # VAAPI
   environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
+
+  # Load nvidia driver for Xorg and Wayland
+  services.xserver.videoDrivers = ["nvidia"];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+    open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
+  hardware.nvidia.prime = {
+    reverseSync.enable = true;
+    allowExternalGpu = false;
+    intelBusId = "PCI:0:2:0";
+    nvidiaBusId = "PCI:1:0:0";
+  };
+
+  # xdg-portals
+  xdg.portal = {
+   enable = true;
+  };
 
   # KDE Connect
   programs.kdeconnect.enable = true;
@@ -148,11 +169,7 @@
   # Environment for performance
   environment.variables = {
     KWIN_DRM_DISABLE_TRIPLE_BUFFERING = "0";
-    #KWIN_DRM_DEVICES = "/dev/dri/card0:/dev/dri/card1";
-    KWIN_DRM_DELAY_VRR_CURSOR_UPDATES = "1";
-    KWIN_FORCE_SW_CURSOR = "1";
-    NOUVEAU_USE_ZINK = "1";
-    GALLIUM_DRIVER = "zink";
+    __GL_YIELD = "USLEEP";
   };
 
   # Unfree
@@ -169,6 +186,27 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+  };
+
+  # Best sound
+  services.pipewire.extraConfig.pipewire-pulse."92-low-latency" = {
+    "context.properties" = [
+      {
+        name = "libpipewire-module-protocol-pulse";
+        args = { };
+      }
+    ];
+    "pulse.properties" = {
+      "pulse.min.req" = "1024/48000";
+      "pulse.default.req" = "1024/48000";
+      "pulse.max.req" = "1024/48000";
+      "pulse.min.quantum" = "1024/48000";
+      "pulse.max.quantum" = "1024/48000";
+    };
+    "stream.properties" = {
+      "node.latency" = "1024/48000";
+      "resample.quality" = 1;
+    };
   };
 
   # User
