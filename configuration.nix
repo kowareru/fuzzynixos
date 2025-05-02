@@ -10,21 +10,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Kernel Parameters
-  boot.kernelParams = [
-    "i915.enable_psr=0"
-    "i915.enable_fbc=1"
-    "i915.enable_dc=1"
-  ];
-
-  boot.extraModprobeConfig = ''
-    options nvidia NVreg_UsePageAttributeTable=1
-    options nvidia NVreg_EnableGpuFirmware=0
-  '';
-
-
   # CPU-tuning
-  hardware.cpu.intel.updateMicrocode = true;
   services.thermald.enable = true;
 
   # SSD
@@ -41,7 +27,7 @@
 
   # ClamAV
   services.clamav = {
-    daemon.enable = true;
+    daemon.enable = false;
     updater.enable = false;
   };
 
@@ -53,7 +39,7 @@
   };
 
   # Hostname
-  networking.hostName = "mercury";
+  networking.hostName = "neptune";
 
   # Bluetooth
   hardware.bluetooth.enable = true;
@@ -99,9 +85,7 @@
   ];
 
   # System packages
-  environment.systemPackages = with pkgs; [
-
-  ];
+  environment.systemPackages = with pkgs; [ ];
 
   # Services
   systemd.services.systemd-timesyncd.enable = false;
@@ -146,45 +130,7 @@
 
   # Module environment
   # Environment for performance
-  environment.variables = {
-    KWIN_DRM_DISABLE_TRIPLE_BUFFERING = "0";
-    __GL_YIELD = "USLEEP";
-  };
-
-  # Module graphics
-  # Enable OpenGL
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [
-      intel-media-sdk
-      intel-media-driver
-      intel-compute-runtime-legacy1
-      intel-vaapi-driver
-      libvdpau-va-gl
-    ];
-  };
-
-  # VAAPI
-  environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
-
-  # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    powerManagement.finegrained = false;
-    open = false;
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
-
-  hardware.nvidia.prime = {
-    reverseSync.enable = true;
-    allowExternalGpu = false;
-    intelBusId = "PCI:0:2:0";
-    nvidiaBusId = "PCI:1:0:0";
-  };
+  environment.variables = { };
 
   # Module other/other
   # Exclude manual HTML
@@ -192,6 +138,28 @@
 
   # Enable CUPS to print documents.
   services.printing.enable = false;
+
+  # Virtualization module
+  # Enable libvirt and qemu
+  # чому отключено runAsRoot? - копируем iso в tmp)))
+    virtualisation.libvirtd = {
+    enable = true;
+    onBoot = "ignore";
+    onShutdown = "shutdown";
+    qemu = {
+      package = pkgs.qemu_kvm;
+      runAsRoot = false;
+      swtpm.enable = true;
+      ovmf = {
+        enable = true;
+        packages = [(pkgs.OVMF.override {
+          secureBoot = true;
+          tpmSupport = true;
+        }).fd];
+      };
+    };
+  };
+  programs.virt-manager.enable = true;
 
   # Module sound
   # Enable sound with pipewire.
@@ -281,7 +249,7 @@
   users.users.kowasu = {
     isNormalUser = true;
     description = "kowasu";
-    extraGroups = [ "networkmanager" "wheel" "gamemode" "audio" ];
+    extraGroups = [ "networkmanager" "wheel" "gamemode" "audio" "libvirtd" ];
     packages = with pkgs; [
       btop
       anki-bin
@@ -296,19 +264,6 @@
       easyeffects
       clamtk
     ];
-  };
-
-  # Module other/aliases
-  # Aliases
-  programs = {
-    bash = {
-      shellAliases = {
-        # Enable cpu turbo boost
-        eturbo = "echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo";
-        # Disable cpu turbo boost
-        dturbo = "echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo";
-      };
-    };
   };
 
   # Module apps/steam
